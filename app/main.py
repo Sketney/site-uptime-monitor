@@ -7,7 +7,7 @@ from .models import Check
 
 app = FastAPI(title="Site Uptime Monitor")
 
-# Создание таблиц при старте приложения
+# Создаём таблицы при старте приложения
 @app.on_event("startup")
 def on_startup():
     print("🚀 Initializing database...")
@@ -18,12 +18,13 @@ def on_startup():
 def root():
     return {"message": "Site Uptime Monitor is running"}
 
+# Проверка сайта
 @app.get("/check")
 async def check_site(url: str):
     db: Session = SessionLocal()
     try:
         start_time = datetime.now()
-        async with httpx.AsyncClient(timeout=5, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
             response = await client.get(url)
         response_time = (datetime.now() - start_time).total_seconds()
 
@@ -50,7 +51,8 @@ async def check_site(url: str):
         return {"url": url, "error": str(e), "checked_at": datetime.now()}
     finally:
         db.close()
-        
+
+# История проверок
 @app.get("/history")
 def get_history():
     db: Session = SessionLocal()
