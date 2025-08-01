@@ -5,15 +5,18 @@ from sqlalchemy.orm import Session
 from .database import SessionLocal, engine, Base
 from .models import Check
 
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI(title="Site Uptime Monitor")
 
+# Создание таблиц при старте приложения
+@app.on_event("startup")
+def on_startup():
+    print("🚀 Initializing database...")
+    Base.metadata.create_all(bind=engine)
+    print("✅ Database initialized")
 
 @app.get("/")
 def root():
     return {"message": "Site Uptime Monitor is running"}
-
 
 @app.get("/check")
 async def check_site(url: str):
