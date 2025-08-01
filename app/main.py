@@ -15,7 +15,7 @@ def root():
 async def check_site(url: str):
     try:
         start_time = datetime.now()
-        async with httpx.AsyncClient(timeout=5) as client:
+        async with httpx.AsyncClient(timeout=5, follow_redirects=True) as client:
             response = await client.get(url)
         response_time = (datetime.now() - start_time).total_seconds()
         return {
@@ -26,3 +26,4 @@ async def check_site(url: str):
         }
     except Exception as e:
         return {"url": url, "error": str(e), "checked_at": datetime.now()}
+
