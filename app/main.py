@@ -20,6 +20,7 @@ async def check_site(url: str):
         response_time = (datetime.now() - start_time).total_seconds()
         return {
             "url": url,
+            "final_url": str(response.url),
             "status_code": response.status_code,
             "response_time": response_time,
             "checked_at": datetime.now()
