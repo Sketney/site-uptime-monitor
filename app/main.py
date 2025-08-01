@@ -50,3 +50,22 @@ async def check_site(url: str):
         return {"url": url, "error": str(e), "checked_at": datetime.now()}
     finally:
         db.close()
+        
+@app.get("/history")
+def get_history():
+    db: Session = SessionLocal()
+    try:
+        checks = db.query(Check).order_by(Check.checked_at.desc()).all()
+        return [
+            {
+                "id": check.id,
+                "url": check.url,
+                "final_url": check.final_url,
+                "status_code": check.status_code,
+                "response_time": check.response_time,
+                "checked_at": check.checked_at
+            }
+            for check in checks
+        ]
+    finally:
+        db.close()
