@@ -1,5 +1,7 @@
 # Site Uptime Monitor
 
+![CI/CD](https://github.com/Sketney/site-uptime-monitor/actions/workflows/ci-cd.yml/badge.svg)
+
 Учебный DevOps-проект для портфолио.  
 Приложение проверяет доступность сайтов, сохраняет результаты в базу данных, 
 отображает историю проверок на веб-странице и отправляет уведомления в Telegram при падении сайта.
