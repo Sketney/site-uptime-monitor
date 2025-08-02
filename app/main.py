@@ -10,10 +10,19 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title="Site Uptime Monitor")
 
+# Подключаем Prometheus метрики
+Instrumentator().instrument(app).expose(app)
+
 
 def scheduled_check():
-    with open("sites.json") as f:
-        sites = json.load(f)
+    """Фоновая проверка всех сайтов из sites.json"""
+    try:
+        with open("/app/sites.json") as f:
+            sites = json.load(f)
+    except Exception as e:
+        print(f"❌ Не удалось открыть sites.json: {e}")
+        return
+
     for url in sites:
         db: Session = SessionLocal()
         try:
@@ -33,31 +42,33 @@ def scheduled_check():
             db.add(check)
             db.commit()
         except Exception as e:
-            print(f"❌ Error checking {url}: {e}")
+            print(f"❌ Ошибка при проверке {url}: {e}")
         finally:
             db.close()
 
 
-# Создаём таблицы при старте приложения
 @app.on_event("startup")
 def on_startup():
+    """Инициализация базы и запуск планировщика"""
     Base.metadata.create_all(bind=engine)
-    Instrumentator().instrument(app).expose(app)
     scheduler = BackgroundScheduler()
     scheduler.add_job(scheduled_check, "interval", minutes=5)
     scheduler.start()
+    print("🚀 Site Uptime Monitor запущен!")
+
 
 @app.get("/")
 def root():
     return {"message": "Site Uptime Monitor is running"}
 
-# Проверка сайта
+
 @app.get("/check")
 async def check_site(url: str):
+    """Проверка одного сайта по запросу"""
     db: Session = SessionLocal()
     try:
         start_time = datetime.now()
-        async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=5, follow_redirects=True) as client:
             response = await client.get(url)
         response_time = (datetime.now() - start_time).total_seconds()
 
@@ -85,9 +96,10 @@ async def check_site(url: str):
     finally:
         db.close()
 
-# История проверок
+
 @app.get("/history")
 def get_history():
+    """Получение истории всех проверок"""
     db: Session = SessionLocal()
     try:
         checks = db.query(Check).order_by(Check.checked_at.desc()).all()
