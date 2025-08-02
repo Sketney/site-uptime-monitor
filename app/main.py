@@ -6,6 +6,7 @@ from .database import SessionLocal, engine, Base
 from .models import Check
 import json
 from apscheduler.schedulers.background import BackgroundScheduler
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title="Site Uptime Monitor")
 
@@ -41,6 +42,7 @@ def scheduled_check():
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
+    Instrumentator().instrument(app).expose(app)
     scheduler = BackgroundScheduler()
     scheduler.add_job(scheduled_check, "interval", minutes=5)
     scheduler.start()
