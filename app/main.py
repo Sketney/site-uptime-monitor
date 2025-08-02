@@ -52,7 +52,7 @@ def on_startup():
     """Инициализация базы и запуск планировщика"""
     Base.metadata.create_all(bind=engine)
     scheduler = BackgroundScheduler()
-    scheduler.add_job(scheduled_check, "interval", minutes=5)
+    scheduler.add_job(scheduled_check, "interval", minutes=1)
     scheduler.start()
     print("🚀 Site Uptime Monitor запущен!")
 
