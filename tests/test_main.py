@@ -5,7 +5,7 @@ from app.database import Base, engine
 client = TestClient(app)
 
 def setup_module(module):
-    """Создание таблиц в тестовой БД (SQLite)"""
+    """Создание таблиц в тестовой SQLite"""
     Base.metadata.create_all(bind=engine)
 
 def test_root():
@@ -16,14 +16,12 @@ def test_root():
 def test_check_and_history():
     url = "https://example.com"
 
-    # Проверка сайта
     check_response = client.get(f"/check?url={url}")
     assert check_response.status_code == 200
     check_data = check_response.json()
     assert check_data["url"] == url
     assert "status_code" in check_data or "error" in check_data
 
-    # Проверяем историю
     history_response = client.get("/history")
     assert history_response.status_code == 200
     history_data = history_response.json()
