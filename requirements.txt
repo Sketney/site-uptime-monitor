@@ -6,3 +6,4 @@ psycopg2-binary
 pytest
 flake8
 apscheduler
+prometheus-fastapi-instrumentator
