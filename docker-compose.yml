@@ -9,6 +9,8 @@ services:
         condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://monitor:monitor@db:5432/uptime
+    volumes:
+      - ./sites.json:/app/sites.json
 
   db:
     image: postgres:14
