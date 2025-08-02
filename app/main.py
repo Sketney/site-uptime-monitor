@@ -4,15 +4,46 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from .database import SessionLocal, engine, Base
 from .models import Check
+import json
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = FastAPI(title="Site Uptime Monitor")
+
+
+def scheduled_check():
+    with open("sites.json") as f:
+        sites = json.load(f)
+    for url in sites:
+        db: Session = SessionLocal()
+        try:
+            start_time = datetime.now()
+            with httpx.Client(timeout=5, follow_redirects=True) as client:
+                response = client.get(url)
+            response_time = (datetime.now() - start_time).total_seconds()
+
+            check = Check(
+                url=url,
+                final_url=str(response.url),
+                status_code=response.status_code,
+                response_time=response_time,
+                checked_at=datetime.now()
+            )
+
+            db.add(check)
+            db.commit()
+        except Exception as e:
+            print(f"❌ Error checking {url}: {e}")
+        finally:
+            db.close()
+
 
 # Создаём таблицы при старте приложения
 @app.on_event("startup")
 def on_startup():
-    print("🚀 Initializing database...")
     Base.metadata.create_all(bind=engine)
-    print("✅ Database initialized")
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(scheduled_check, "interval", minutes=5)
+    scheduler.start()
 
 @app.get("/")
 def root():
