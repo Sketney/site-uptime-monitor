@@ -7,11 +7,17 @@ from .models import Check
 import json
 from apscheduler.schedulers.background import BackgroundScheduler
 from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Counter
 
 app = FastAPI(title="Site Uptime Monitor")
 
 Instrumentator().instrument(app).expose(app)
 
+error_counter = Counter(
+    "site_check_errors_total", 
+    "Количество ошибок при проверке сайтов",
+    ["url", "error"]
+)
 
 def scheduled_check():
     try:
@@ -42,18 +48,18 @@ def scheduled_check():
 
         except Exception as e:
             print(f"❌ Ошибка при проверке {url}: {e}")
+            error_text = str(e)[:100]  # ограничим длину
             check = Check(
                 url=url,
                 final_url=None,
                 status_code=None,
                 response_time=None,
                 checked_at=datetime.now(),
-                error=str(e)  
+                error=error_text
             )
             db.add(check)
             db.commit()
-        finally:
-            db.close()
+            error_counter.labels(url=url, error=error_text).inc()
 
 
 @app.on_event("startup")
