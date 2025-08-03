@@ -15,7 +15,6 @@ Instrumentator().instrument(app).expose(app)
 
 
 def scheduled_check():
-    """Фоновая проверка всех сайтов из sites.json"""
     try:
         with open("/app/sites.json") as f:
             sites = json.load(f)
@@ -36,13 +35,24 @@ def scheduled_check():
                 final_url=str(response.url),
                 status_code=response.status_code,
                 response_time=response_time,
-                checked_at=datetime.now()
+                checked_at=datetime.now(),
+                error=None
             )
-
             db.add(check)
             db.commit()
+
         except Exception as e:
             print(f"❌ Ошибка при проверке {url}: {e}")
+            check = Check(
+                url=url,
+                final_url=None,
+                status_code=None,
+                response_time=None,
+                checked_at=datetime.now(),
+                error=str(e)  # сохраняем текст ошибки
+            )
+            db.add(check)
+            db.commit()
         finally:
             db.close()
 
