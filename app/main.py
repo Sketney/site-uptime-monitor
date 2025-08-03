@@ -10,7 +10,6 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(title="Site Uptime Monitor")
 
-# Подключаем Prometheus метрики
 Instrumentator().instrument(app).expose(app)
 
 
@@ -49,7 +48,7 @@ def scheduled_check():
                 status_code=None,
                 response_time=None,
                 checked_at=datetime.now(),
-                error=str(e)  # сохраняем текст ошибки
+                error=str(e)  
             )
             db.add(check)
             db.commit()
@@ -109,7 +108,6 @@ async def check_site(url: str):
 
 @app.get("/history")
 def get_history():
-    """Получение истории всех проверок"""
     db: Session = SessionLocal()
     try:
         checks = db.query(Check).order_by(Check.checked_at.desc()).all()
@@ -120,7 +118,8 @@ def get_history():
                 "final_url": check.final_url,
                 "status_code": check.status_code,
                 "response_time": check.response_time,
-                "checked_at": check.checked_at
+                "checked_at": check.checked_at,
+                "error": check.error
             }
             for check in checks
         ]
