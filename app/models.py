@@ -11,3 +11,4 @@ class Check(Base):
     status_code = Column(Integer)
     response_time = Column(Float)
     checked_at = Column(DateTime, default=datetime.utcnow)
+    error = Column(String, nullable=True)
