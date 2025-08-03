@@ -33,6 +33,7 @@ services:
     container_name: uptime_prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus   # сохраняем метрики
     ports:
       - "9090:9090"
 
@@ -45,8 +46,9 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
-      - grafana-storage:/var/lib/grafana
+      - grafana-storage:/var/lib/grafana   # сохраняем дашборды
 
 volumes:
   pgdata:
   grafana-storage:
+  prometheus-data:
